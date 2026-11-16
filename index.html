@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FlexTopUp - New Beginning</title>
+<style>
+body{margin:0;font-family:Arial;background:#f4f6fb;padding:16px}
+.card{background:white;padding:20px;border-radius:16px;box-shadow:0 2px 10px rgba(0,0,0,.1)}
+input,button{width:100%;padding:14px;margin:8px 0;border-radius:10px;border:1px solid #ddd;font-size:16px;box-sizing:border-box}
+button{background:#0b5cff;color:white;border:none;font-weight:bold;cursor:pointer}
+button.secondary{background:#eef2ff;color:#0b5cff}
+.hidden{display:none}
+.top{background:#0b5cff;color:white;padding:20px;border-radius:16px;text-align:center}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="authPage" class="card">
+<h1 style="text-align:center;color:#0a2a7a">⚡ FlexTopUp</h1>
+<h3 id="authTitle" style="text-align:center">Welcome Back</h3>
+<input id="authName" placeholder="Full Name (for Register)" style="display:none">
+<input id="authPhone" placeholder="Phone Number e.g 08031234567" type="tel">
+<input id="authPass" placeholder="Password" type="password">
+<button id="authBtn">Login</button>
+<button id="toggleBtn" class="secondary">No account? Create Account</button>
+<p style="font-size:12px;color:#888;text-align:center">One phone number = One account</p>
+</div>
+
+<!-- HOME -->
+<div id="app" class="hidden">
+<div class="top"><h2>Welcome, <span id="userName2">Friend</span>! 👋</h2><p id="userPhone2"></p><p>Ready to stay connected?</p></div>
+<div class="card" style="margin-top:12px">
+<h3>Buy Data Sharp Sharp ⚡</h3>
+<p>500MB - ₦200<br>1GB - ₦400<br>2GB - ₦600</p>
+<button onclick="alert('Buy Data go come for Step 2!')">Buy Now</button>
+</div>
+<div class="card">
+<p>✅ STEP 1 WORKING!</p>
+<p>Login work, Home work. Next step we go add OPay Copy + Airtime to Cash.</p>
+<button class="secondary" onclick="logout()">Logout</button>
+</div>
+</div>
+
+<script>
+let users = [];
+try{ users = JSON.parse(localStorage.getItem('ft_users')||'[]'); }catch(e){ users=[]; }
+let currentUser = null;
+try{ currentUser = JSON.parse(localStorage.getItem('ft_current')||'null'); }catch(e){ currentUser=null; }
+let isLoginMode = true;
+
+function cleanPhone(p){ return (p||'').replace(/\D/g,'').slice(-10); }
+
+function toggleAuth(){
+  isLoginMode = !isLoginMode;
+  document.getElementById('authTitle').innerText = isLoginMode ? 'Welcome Back' : 'Create Account';
+  document.getElementById('authBtn').innerText = isLoginMode ? 'Login' : 'Create Account';
+  document.getElementById('authName').style.display = isLoginMode ? 'none' : 'block';
+}
+
+function handleAuth(){
+  let name = document.getElementById('authName').value.trim();
+  let phone = document.getElementById('authPhone').value.trim();
+  let pass = document.getElementById('authPass').value.trim();
+  if(!phone || !pass){ alert('Enter phone and password'); return; }
+  let cPhone = cleanPhone(phone);
+  if(isLoginMode){
+    let found = users.find(u => cleanPhone(u.phone)===cPhone && u.pass===pass);
+    if(!found){ alert('Wrong phone or password. If you never register, press Create Account!'); return; }
+    currentUser = found;
+    localStorage.setItem('ft_current', JSON.stringify(found));
+    showApp();
+  } else {
+    let exists = users.find(u => cleanPhone(u.phone)===cPhone);
+    if(exists){ alert('This number don already register! One number = One account. Please Login.'); return; }
+    if(!name){ alert('Enter Full Name'); return; }
+    let nu = {name, phone, pass};
+    users.push(nu);
+    localStorage.setItem('ft_users', JSON.stringify(users));
+    currentUser = nu;
+    localStorage.setItem('ft_current', JSON.stringify(nu));
+    alert('Welcome '+name+'! Account created!');
+    showApp();
+  }
+}
+
+function showApp(){
+  document.getElementById('authPage').classList.add('hidden');
+  document.getElementById('app').classList.remove('hidden');
+  document.getElementById('userName2').innerText = currentUser.name;
+  document.getElementById('userPhone2').innerText = currentUser.phone;
+}
+
+function logout(){
+  localStorage.removeItem('ft_current');
+  location.reload();
+}
+
+// BUTTONS - 2 WAYS TO MAKE SURE E WORK
+document.getElementById('authBtn').addEventListener('click', handleAuth);
+document.getElementById('toggleBtn').addEventListener('click', toggleAuth);
+
+// IF USER DON LOGIN BEFORE, SHOW HOME DIRECT
+if(currentUser){ showApp(); }
+</script>
+</body>
+</html>
